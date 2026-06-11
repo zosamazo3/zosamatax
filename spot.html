@@ -143,6 +143,7 @@ h2{font-family:'Zen Old Mincho',serif;font-size:clamp(22px,3.6vw,32px);font-weig
 .out .brk{margin-top:20px;text-align:left;font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:14px;position:relative;z-index:1}
 .out .brk div{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
 .out .brk div b{color:var(--ink);font-weight:700;white-space:nowrap}
+.out .brk div.note{display:block;font-size:11.5px;line-height:1.7;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px dotted var(--line)}
 .feetbl{margin-top:20px}
 .feetbl summary{cursor:pointer;text-align:center;font-weight:700;font-size:13.5px;color:var(--leaf-d);list-style:none;padding:8px}
 .feetbl summary::-webkit-details-marker{display:none}
@@ -268,23 +269,43 @@ footer::before{content:'';display:block;width:140px;height:16px;margin:0 auto 18
   <div class="sec-head rv">
     <span class="en">Spot</span>
     <h2>Spot</h2>
-    <p>顧問契約ではなく、必要なときだけご依頼いただける単発（スポット）業務の料金です。金額はすべて税別です。</p>
+    <p>年間売上のつまみを動かすと、年間報酬の目安がその場でわかります。金額は決算申告のみの金額です。</p>
+  </div>
+  <div class="sim rv">
+    <div class="ctrl">
+      <label class="t" for="rng">年間売上 <small>100万円きざみ</small></label>
+      <div class="sales-val"><span id="salesLabel">800万円</span></div>
+      <input type="range" class="rng" id="rng" min="100" max="3000" step="100" value="800" aria-label="年間売上（万円）">
+      <div class="rng-scale"><span>〜100万</span><span>3,000万〜</span></div>
+
+      <label class="t" style="margin-top:26px">消費税の課税方式 <small>インボイス加算は売上1,000万円以下のみ</small></label>
+      <div class="chips">
+        <button type="button" class="chip" id="nizeiChip" aria-pressed="false">インボイス登録済（2割特例）＋10%</button>
+      </div>
+
+    </div>
+    <div class="out" aria-live="polite">
+      <span class="lbl">— Annual Fee —</span>
+      <div class="price" id="priceOut">190,000<small>円</small></div>
+      <div class="per">年間報酬・税別／決算申告のみ</div>
+      <div class="brk" id="brkOut"></div>
+    </div>
   </div>
   <div class="feetbl rv">
     <div class="fee-wrap" style="margin-top:16px">
       <table class="fee">
-        <thead><tr><th>業務内容</th><th>料金（税別）</th></tr></thead>
+        <thead><tr><th>年間売上</th><th>年間報酬（決算申告のみ）</th></tr></thead>
         <tbody>
-          <tr><td class="plan">確定申告（事業所得・不動産所得）<small>SHOTOKU</small></td><td class="p"><b>50,000</b>円<small>〜（規模により変動）</small></td></tr>
-          <tr><td class="plan">確定申告（譲渡所得・株式等）<small>JOTO</small></td><td class="p"><b>40,000</b>円<small>〜</small></td></tr>
-          <tr><td class="plan">記帳代行<small>KICHO</small></td><td class="p"><b>10,000</b>円<small>／月〜（仕訳数により変動）</small></td></tr>
-          <tr><td class="plan">年末調整<small>NENMATSU</small></td><td class="p"><b>20,000</b>円<small>〜（人数により変動）</small></td></tr>
-          <tr><td class="plan">相続税申告<small>SOZOKU</small></td><td class="p"><b>200,000</b>円<small>〜（財産額により変動）</small></td></tr>
-          <tr><td class="plan">スポット相談（オンライン60分）<small>SODAN</small></td><td class="p"><b>10,000</b>円<small>／回</small></td></tr>
+          <tr><td class="plan">〜500万円</td><td class="p"><b>170,000</b>円</td></tr>
+          <tr><td class="plan">〜1,000万円</td><td class="p"><b>190,000</b>円</td></tr>
+          <tr><td class="plan">〜1,200万円</td><td class="p"><b>200,000</b>円</td></tr>
+          <tr><td class="plan">〜1,400万円</td><td class="p"><b>210,000</b>円</td></tr>
+          <tr><td class="plan">〜1,600万円</td><td class="p"><b>220,000</b>円</td></tr>
+          <tr><td class="plan">〜1,800万円</td><td class="p"><b>230,000</b>円</td></tr>
+          <tr><td class="plan">以降200万円ごと</td><td class="p"><b>10,000</b>円ずつ加算</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="fee-note">※上記は目安です。業務量・規模により変動しますので、詳しくはお問い合わせください。</p>
   </div>
 </section>
 
@@ -299,6 +320,54 @@ footer::before{content:'';display:block;width:140px;height:16px;margin:0 auto 18
 <script>
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
 document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+// 料金シミュレーター
+(function(){
+  const rng=document.getElementById('rng');
+  if(!rng)return;
+  const salesLabel=document.getElementById('salesLabel'),
+        priceOut=document.getElementById('priceOut'),
+        brkOut=document.getElementById('brkOut'),
+        nizei=document.getElementById('nizeiChip');
+  const fmt=n=>Math.round(n).toLocaleString('ja-JP');
+  function baseFee(man){
+    if(man<=500)return 170000;
+    if(man<=1000)return 190000;
+    if(man<=1200)return 200000;
+    if(man<=1400)return 210000;
+    if(man<=1600)return 220000;
+    if(man<=1800)return 230000;
+    return 230000+Math.ceil((man-1800)/200)*10000;
+  }
+  function update(){
+    const man=+rng.value;
+    rng.style.setProperty('--p',((man-rng.min)/(rng.max-rng.min)*100)+'%');
+    salesLabel.textContent=man.toLocaleString('ja-JP')+'万円'+(man>=3000?'〜':'');
+    // インボイス加算は売上1,000万円以下のみ対象
+    const nizeiEligible=man<=1000;
+    if(!nizeiEligible&&nizei.classList.contains('on')){
+      nizei.classList.remove('on');nizei.setAttribute('aria-pressed','false');
+    }
+    nizei.disabled=!nizeiEligible;
+    nizei.classList.toggle('is-disabled',!nizeiEligible);
+    const nizeiOn=nizei.classList.contains('on');
+    const base=baseFee(man);
+    const rate=nizeiOn?1.1:1;
+    const core=base*rate;
+    let html='<div><span>基本報酬（決算申告のみ）</span><b>'+fmt(base)+'円</b></div>';
+    if(rate>1)html+='<div><span>インボイス2割特例 ＋10%</span><b>＋'+fmt(core-base)+'円</b></div>';
+    html+='<div class="note">決算書に不備が散見される場合には、30%を上限に料金加算します。</div>';
+    brkOut.innerHTML=html;
+    priceOut.innerHTML=fmt(core)+'<small>円</small>';
+  }
+  rng.addEventListener('input',update);
+  nizei.addEventListener('click',()=>{
+    if(nizei.disabled)return;
+    const on=!nizei.classList.contains('on');
+    nizei.classList.toggle('on',on);nizei.setAttribute('aria-pressed',on);
+    update();
+  });
+  update();
+})();
 // 舞う木の葉
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
   const glyphs=['❧','❧','❀','✿','❦','❧'];
