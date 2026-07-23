@@ -273,7 +273,7 @@ img,svg{max-width:100%}
   .brand{font-size:13px;letter-spacing:.03em;line-height:1.45}
   .brand .loc{font-size:14px;letter-spacing:.06em;margin-right:5px}
   .brand small{font-size:8.5px;letter-spacing:.12em}
-  .brand .freee-badge{display:none}   /* フッターに大きく掲載しているため省略 */
+  .brand .freee-badge{height:40px;margin-left:8px}   /* スマホでも表示（縮小して配置）*/
   nav>.cta-s{display:none}
   .navtoggle{display:flex}
   nav .links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;
@@ -298,7 +298,7 @@ img,svg{max-width:100%}
   /* ---- 全体の余白・文字サイズ ---- */
   body{font-size:15px}
   section{padding:56px 18px}
-  .hero{padding:100px 18px 36px;min-height:auto}
+  .hero{padding:112px 18px 36px;min-height:auto}
   .hero-grid{gap:26px}
   .hero .badge{font-size:11px;padding:6px 12px;margin-bottom:16px;line-height:1.6}
   .hero p.lead{font-size:14.5px;margin:18px 0 26px}
@@ -345,6 +345,9 @@ img,svg{max-width:100%}
 
 @media(max-width:430px){
   h1{line-height:1.4}
+  .brand{font-size:12px}
+  .brand .loc{font-size:13px}
+  .brand .freee-badge{height:34px;margin-left:6px}
   .hero .btns{flex-direction:column;align-items:stretch}
   .hero .btns .btn{justify-content:center}
   .contact .btns .btn{width:100%;justify-content:center}
